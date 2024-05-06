@@ -52,6 +52,7 @@ class TriggerEvents:
 
     def trigger_run(self, event: TriggerEvent):
         if not event.is_runned:
+            event.is_runned = True
             t = threading.Thread(target=self.call_api, args=(event, ), daemon=True)
             t.start()
 
@@ -66,7 +67,6 @@ class TriggerEvents:
             time.sleep(.1)
             r = requests.post(self.base_url + event.api_call, data=json.dumps(False))
             print(r.status_code, r.reason, r.request.body)
-            event.is_runned = True
         except Exception:
             LogInstance.string_data += self.base_url + " connection error!" + "\n"
             LogInstance.string_data += "\n"

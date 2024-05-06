@@ -103,7 +103,6 @@ class TimeCode:
                 break
             if self.jam != last_jam:
                 h, m, s, f = [int(x) for x in self.jam.split(':')]
-                print(circle_counter)
                 circle_counter = 0
                 last_jam = self.jam
             tcp = "{:02d}:{:02d}:{:02d}:{:02d}".format(h, m, s, f)
