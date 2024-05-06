@@ -7,16 +7,15 @@ from system.trigger_events import TriggerEvents
 
 
 class TimeCode:
-    # 113,119,101
     time_code: str = ''
-    CHUNK = 2048
+    fps: int = 24
+    CHUNK = 4096
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
     RATE = 44100
     SYNC_WORD = '0011111111111101'
     jam = '00:00:00:00'
     now_tc = '00:00:00:00'
-    # 1byte,1byte,1byte,1byte,1byte
     last_cam = '-1'
     jam_advice = False
     jammed = False
@@ -76,18 +75,13 @@ class TimeCode:
         )
         return o
 
-    def print_tc(self, stream):
-        inter = 1 / (24000 / 1000)
-        last_jam = self.jam
-        h, m, s, f = [int(x) for x in self.jam.split(':')]
+    def fetch_audio(self, stream):
         while True:
-            # events cheker TODO move to another thread
             h_time, m_time, s_time, f_time = [int(x) for x in self.time_code.split(":")] if self.time_code != '' else [0, 0, 0, 0]
             for event in self.trigger_events.events:
                 h_event, m_event, s_event, f_event = [int(x) for x in event.timecode_trigger.split(":")]
                 if h_time == h_event and m_time == m_event and s_time == s_event:
                     self.trigger_events.trigger_run(event)
-
 
             data = stream.read(self.CHUNK)
             self.time_code = self.decode_ltc(data)
@@ -97,16 +91,32 @@ class TimeCode:
                 for event in self.trigger_events.events:
                     event.is_runned = False
 
+    def print_tc(self, stream):
+        inter = 1 / self.fps
+        last_jam = self.jam
+        h, m, s, f = [int(x) for x in self.jam.split(':')]
+        circle_counter: int = 1
+        t = threading.Thread(target=self.fetch_audio, args=(stream,), daemon=True)
+        t.start()
+        while True:
             if self.jam == None:
                 break
             if self.jam != last_jam:
                 h, m, s, f = [int(x) for x in self.jam.split(':')]
+                print(circle_counter)
+                circle_counter = 0
                 last_jam = self.jam
             tcp = "{:02d}:{:02d}:{:02d}:{:02d}".format(h, m, s, f)
             self.now_tc = tcp
-            # time.sleep(inter)
+
+            # if circle_counter < 2:
+            #     self.time_code = tcp
+            #     print(tcp)
+
+            time.sleep(inter)
+            circle_counter += 1
             f += 1
-            if f >= 24:
+            if f >= self.fps:
                 f = 0
                 s += 1
             if s >= 60:

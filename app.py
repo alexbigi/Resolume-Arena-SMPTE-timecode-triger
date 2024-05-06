@@ -47,7 +47,7 @@ class View(QMainWindow):
 
     def show_time(self):
         current_time = QTime.currentTime()
-        label_time = current_time.toString('hh:mm:ss.zzz')
+        label_time = current_time.toString('hh:mm:ss')
         self.clock.setText(label_time)
         self.timecode.setText(timecode.time_code)
         self.label1.setText(LogInstance.string_data)
