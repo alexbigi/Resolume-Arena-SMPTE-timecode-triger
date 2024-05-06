@@ -1,3 +1,4 @@
+import threading
 import time
 import requests
 import json
@@ -51,8 +52,13 @@ class TriggerEvents:
 
     def trigger_run(self, event: TriggerEvent):
         if not event.is_runned:
+            t = threading.Thread(target=self.call_api, args=(event, ), daemon=True)
+            t.start()
+
+    def call_api(self, event: TriggerEvent):
+        try:
             r = requests.post(self.base_url + event.api_call, data=json.dumps(True))
-            LogInstance.string_data += event.name+"\n"
+            LogInstance.string_data += event.name + "\n"
             LogInstance.string_data += event.timecode_trigger + "\n"
             LogInstance.string_data += event.api_call + "\n"
             LogInstance.string_data += "\n"
@@ -61,3 +67,6 @@ class TriggerEvents:
             r = requests.post(self.base_url + event.api_call, data=json.dumps(False))
             print(r.status_code, r.reason, r.request.body)
             event.is_runned = True
+        except Exception:
+            LogInstance.string_data += self.base_url + " connection error!" + "\n"
+            LogInstance.string_data += "\n"
