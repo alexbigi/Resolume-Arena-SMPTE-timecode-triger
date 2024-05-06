@@ -83,7 +83,6 @@ class Controller:
 
         if self.duration < 0:
             self.timer.stop()
-            self.view.label2.hide()
             self.duration = 5
 
     def hideit(self, arg):

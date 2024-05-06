@@ -1,2 +1,6 @@
 requests
 pyaudio
+PyQt6
+mido
+install
+python-rtmidi
